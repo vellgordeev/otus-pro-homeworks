@@ -9,7 +9,7 @@ public class Tests {
 
     @Before
     public void testBeforeShouldBeIgnored() {
-        System.out.println("this test should be ignored");
+        System.out.println("this test should be ignored, cause there is no @Test");
     }
 
     @Before
@@ -18,10 +18,22 @@ public class Tests {
         System.out.println("before every test");
     }
 
+    @Before
+    @Test
+    public void testBeforeSecond() {
+        System.out.println("second before every test");
+    }
+
     @After
     @Test
     public void testAfter() {
         System.out.println("after every test");
+    }
+
+    @After
+    @Test
+    public void testAfterSecond() {
+        System.out.println("second after every test");
     }
 
     @Test(priority = 1)
