@@ -1,9 +1,9 @@
-import ru.gordeev.AnnotationProccessor;
+import ru.gordeev.AnnotationProcessor;
 
 public class MainTest {
-    private static final AnnotationProccessor ANNOTATION_PROCCESSOR = new AnnotationProccessor();
+    private static final AnnotationProcessor ANNOTATION_PROCESSOR = new AnnotationProcessor();
 
     public static void main(String[] args) {
-        ANNOTATION_PROCCESSOR.run(Tests.class);
+        ANNOTATION_PROCESSOR.run(Tests.class);
     }
 }

@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AnnotationProccessor {
+public class AnnotationProcessor {
     private final Logger logger;
     private Object instance;
     private final Reporter resultedReport;
@@ -22,12 +22,12 @@ public class AnnotationProccessor {
     private Method afterSuiteMethod;
 
 
-    public AnnotationProccessor() {
+    public AnnotationProcessor() {
         this.resultedReport = new Reporter();
         beforeMethods = new ArrayList<>();
         afterMethods = new ArrayList<>();
         testMethods = new ArrayList<>();
-        this.logger = LogManager.getLogger(AnnotationProccessor.class);
+        this.logger = LogManager.getLogger(AnnotationProcessor.class);
     }
 
     public void run(Class<?> testClass) {
@@ -56,33 +56,48 @@ public class AnnotationProccessor {
     private void parseAnnotations(Class<?> testClass) {
         Method[] methods = testClass.getMethods();
         for (Method method : methods) {
-            if (method.isAnnotationPresent(Disabled.class)) {
-                resultedReport.addSkipped();
-                continue;
+            if (handleDisabled(method)) continue;
+
+            handleBeforeAfterSuite(method);
+
+            classifyTestMethods(method);
+        }
+    }
+
+    private boolean handleDisabled(Method method) {
+        if (method.isAnnotationPresent(Disabled.class)) {
+            resultedReport.addSkipped();
+            return true;
+        }
+        return false;
+    }
+
+    private void handleBeforeAfterSuite(Method method) {
+        if (method.isAnnotationPresent(BeforeSuite.class)) {
+            if (beforeSuiteMethod != null) {
+                throw new IllegalArgumentException("More than one @BeforeSuite method found");
             }
-            if (method.isAnnotationPresent(BeforeSuite.class)) {
-                if (beforeSuiteMethod != null) {
-                    throw new IllegalArgumentException("More than one @BeforeSuite method found");
-                }
-                beforeSuiteMethod = method;
+            beforeSuiteMethod = method;
+        }
+        if (method.isAnnotationPresent(AfterSuite.class)) {
+            if (afterSuiteMethod != null) {
+                throw new IllegalArgumentException("More than one @AfterSuite method found");
             }
-            if (method.isAnnotationPresent(AfterSuite.class)) {
-                if (afterSuiteMethod != null) {
-                    throw new IllegalArgumentException("More than one @AfterSuite method found");
-                }
-                afterSuiteMethod = method;
+            afterSuiteMethod = method;
+        }
+    }
+
+    private void classifyTestMethods(Method method) {
+        if (method.isAnnotationPresent(Test.class)) {
+            if (method.isAnnotationPresent(Before.class)) {
+                beforeMethods.add(method);
+                return;
             }
-            if (method.isAnnotationPresent(Test.class)) {
-                if (method.isAnnotationPresent(Before.class)) {
-                    beforeMethods.add(method);
-                    continue;
-                }
-                if (method.isAnnotationPresent(After.class)) {
-                    afterMethods.add(method);
-                    continue;
-                }
-                testMethods.add(method);
+            if (method.isAnnotationPresent(After.class)) {
+                afterMethods.add(method);
+                return;
             }
+            testMethods.add(method);
         }
     }
 

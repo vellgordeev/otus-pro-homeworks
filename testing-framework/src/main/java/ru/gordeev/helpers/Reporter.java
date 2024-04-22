@@ -2,20 +2,21 @@ package ru.gordeev.helpers;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.gordeev.AnnotationProccessor;
+import ru.gordeev.AnnotationProcessor;
 
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.Map;
 
 import static ru.gordeev.helpers.TestStatus.*;
 
 public class Reporter {
 
     private final Logger logger;
-    private HashMap<TestStatus, Integer> resultedReport;
+    private Map<TestStatus, Integer> resultedReport;
 
     public Reporter() {
-        this.resultedReport = new HashMap<>();
-        this.logger = LogManager.getLogger(AnnotationProccessor.class);
+        this.resultedReport = new EnumMap<>(TestStatus.class);
+        this.logger = LogManager.getLogger(AnnotationProcessor.class);
     }
 
     public void clearResults() {
@@ -42,11 +43,11 @@ public class Reporter {
 
         report.append("\n================================ Test report =================================\n");
 
-        // Зеленый для успешных тестов
+        // Green for successful tests
         report.append("\u001B[32m").append(String.format("Successful tests: %d", resultedReport.get(SUCCESSFUL))).append("\u001B[0m\n");
-        // Красный для неудачных
+        // Red for failed tests
         report.append("\u001B[31m").append(String.format("Failed tests:     %d", resultedReport.get(FAILED))).append("\u001B[0m\n");
-        // Стандартный цвет для пропущенных
+        // Standard for successful tests
         report.append(String.format("Skipped tests:    %d", resultedReport.get(SKIPPED))).append("\n");
 
         int totalTests = resultedReport.values().stream().mapToInt(Integer::intValue).sum();
