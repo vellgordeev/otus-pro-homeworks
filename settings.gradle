@@ -1,4 +1,5 @@
 rootProject.name = 'otus-pro-homeworks'
 include 'testing-framework'
-include 'stream-homework'
+include 'stream-api'
+include 'code-patterns'
 
