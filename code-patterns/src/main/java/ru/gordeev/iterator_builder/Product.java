@@ -1,4 +1,4 @@
-package ru.gordeev;
+package ru.gordeev.iterator_builder;
 
 
 import lombok.AccessLevel;
@@ -10,21 +10,21 @@ import lombok.ToString;
 @ToString
 public class Product {
 
-    private int id;
+    private final int id;
 
-    private String title;
+    private final String title;
 
-    private String description;
+    private final String description;
 
-    private double cost;
+    private final double cost;
 
-    private int weight;
+    private final int weight;
 
-    private int width;
+    private final int width;
 
-    private int length;
+    private final int length;
 
-    private int height;
+    private final int height;
 
 
     public static Builder builder() {

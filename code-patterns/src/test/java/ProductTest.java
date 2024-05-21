@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.Test;
-import ru.gordeev.Product;
+import ru.gordeev.iterator_builder.Product;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 class ProductTest {
 
@@ -18,16 +18,16 @@ class ProductTest {
                 .height(10)
                 .build();
 
-        assertAll("product",
-                () -> assertEquals(1, product.getId()),
-                () -> assertEquals("Test Product", product.getTitle()),
-                () -> assertEquals("A test product description", product.getDescription()),
-                () -> assertEquals(19.99, product.getCost()),
-                () -> assertEquals(500, product.getWeight()),
-                () -> assertEquals(30, product.getWidth()),
-                () -> assertEquals(20, product.getLength()),
-                () -> assertEquals(10, product.getHeight())
-        );
+        assertThat(product).satisfies(p -> {
+            assertThat(p.getId()).isEqualTo(1);
+            assertThat(p.getTitle()).isEqualTo("Test Product");
+            assertThat(p.getDescription()).isEqualTo("Test product description");
+            assertThat(p.getCost()).isEqualTo(19.99);
+            assertThat(p.getWeight()).isEqualTo(500);
+            assertThat(p.getWidth()).isEqualTo(30);
+            assertThat(p.getLength()).isEqualTo(20);
+            assertThat(p.getHeight()).isEqualTo(10);
+        });
     }
 
     @Test
@@ -37,16 +37,16 @@ class ProductTest {
                 .title("Minimal Product")
                 .build();
 
-        assertAll("product minimal",
-                () -> assertEquals(2, product.getId()),
-                () -> assertEquals("Minimal Product", product.getTitle()),
-                () -> assertNull(product.getDescription()),
-                () -> assertEquals(0.0, product.getCost()),
-                () -> assertEquals(0, product.getWeight()),
-                () -> assertEquals(0, product.getWidth()),
-                () -> assertEquals(0, product.getLength()),
-                () -> assertEquals(0, product.getHeight())
-        );
+        assertThat(product).satisfies(p -> {
+            assertThat(p.getId()).isEqualTo(2);
+            assertThat(p.getTitle()).isEqualTo("Minimal Product");
+            assertThat(p.getDescription()).isNull();
+            assertThat(p.getCost()).isEqualTo(0.0);
+            assertThat(p.getWeight()).isZero();
+            assertThat(p.getWidth()).isZero();
+            assertThat(p.getLength()).isZero();
+            assertThat(p.getHeight()).isZero();
+        });
     }
 
     @Test
@@ -59,6 +59,6 @@ class ProductTest {
         builder.title("Changed Title");
         Product product2 = builder.build();
 
-        assertNotEquals(product1.getTitle(), product2.getTitle());
+        assertThat(product1.getTitle()).isNotEqualTo(product2.getTitle());
     }
 }

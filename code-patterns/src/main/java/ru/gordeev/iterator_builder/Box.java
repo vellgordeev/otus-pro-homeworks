@@ -1,4 +1,4 @@
-package ru.gordeev;
+package ru.gordeev.iterator_builder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -8,13 +8,13 @@ import java.util.NoSuchElementException;
 
 public class Box implements Iterable<String> {
 
-    public List<String> firstList;
+    private final List<String> firstList;
 
-    public List<String> secondList;
+    private final List<String> secondList;
 
-    public List<String> thirdList;
+    private final List<String> thirdList;
 
-    public List<String> fourthList;
+    private final List<String> fourthList;
 
 
     public Box() {
@@ -22,6 +22,22 @@ public class Box implements Iterable<String> {
         this.secondList = new ArrayList<>();
         this.thirdList = new ArrayList<>();
         this.fourthList = new ArrayList<>();
+    }
+
+    public List<String> getFirstList() {
+        return firstList;
+    }
+
+    public List<String> getSecondList() {
+        return secondList;
+    }
+
+    public List<String> getFourthList() {
+        return fourthList;
+    }
+
+    public List<String> getThirdList() {
+        return thirdList;
     }
 
     @Override
