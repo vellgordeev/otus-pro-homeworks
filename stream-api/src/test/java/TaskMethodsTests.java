@@ -1,9 +1,7 @@
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import ru.gordeev.Task;
 import ru.gordeev.TaskMethods;
-import ru.gordeev.TaskStatus;
 
 import java.util.Comparator;
 import java.util.List;
