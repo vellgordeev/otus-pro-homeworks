@@ -1,18 +1,26 @@
 package ru.gordeev;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Setter
+@Getter
+@NoArgsConstructor
 @RepositoryTable(title = "accounts")
 public class Account {
+
     @RepositoryIdField
-    @RepositoryField
+    @RepositoryField(name = "id")
     private Long id;
 
-    @RepositoryField
+    @RepositoryField(name = "amount")
     private Long amount;
 
-    @RepositoryField // TODO (name = "tp");
+    @RepositoryField(name = "account_type")
     private String accountType;
 
-    @RepositoryField
+    @RepositoryField(name = "status")
     private String status;
 
     public Account(Long amount, String accountType, String status) {

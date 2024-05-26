@@ -1,23 +1,26 @@
 package ru.gordeev;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
+@NoArgsConstructor
 @RepositoryTable(title = "users")
 public class User {
+
     @RepositoryIdField
-    @RepositoryField
+    @RepositoryField(name = "id")
     private Long id;
 
-    @RepositoryField
+    @RepositoryField(name = "login")
     private String login;
 
-    @RepositoryField
+    @RepositoryField(name = "password")
     private String password;
 
-    @RepositoryField
+    @RepositoryField(name = "nickname")
     private String nickname;
 
     public User(String login, String password, String nickname) {
