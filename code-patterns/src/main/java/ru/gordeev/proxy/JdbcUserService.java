@@ -46,7 +46,7 @@ public class JdbcUserService implements UserService {
                 pstmt.setString(2, user.password());
                 pstmt.setString(3, user.username());
                 pstmt.setString(4, user.userRole().name());
-                pstmt.executeUpdate();
+                pstmt.executeBatch();
             }
             connection.commit();
         } catch (SQLException e) {
