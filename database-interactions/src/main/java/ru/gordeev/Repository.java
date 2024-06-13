@@ -1,32 +1,32 @@
 package ru.gordeev;
 
-import lombok.Getter;
 import ru.gordeev.exceptions.RepositoryException;
+import ru.gordeev.entities.EntityField;
+import ru.gordeev.entities.EntityMetaInfo;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
-public class AbstractRepository<T> {
+public class Repository<T> {
 
     private final Class<T> cls;
-    private final ClassEntities classEntities;
+    private final EntityMetaInfo entityMetaInfo;
     private final DataSource dataSource;
     private final String tableName;
     private String preparedUpdateAllFields;
     private String preparedInsert;
 
-    public AbstractRepository(DataSource dataSource, Class<T> cls) {
+    public Repository(DataSource dataSource, Class<T> cls) {
         this.dataSource = dataSource;
         this.cls = cls;
-        this.classEntities = new ClassEntities();
 
         if (!cls.isAnnotationPresent(RepositoryTable.class)) {
             throw new RepositoryException("Class " + cls.getName() + " must be annotated with @RepositoryTable");
@@ -39,7 +39,7 @@ public class AbstractRepository<T> {
         }
 
         this.tableName = cls.getAnnotation(RepositoryTable.class).title();
-        getGettersSettersAndFieldNames(cls);
+        this.entityMetaInfo = getEntityMetaInfo(cls);
     }
 
     public List<T> findAll() {
@@ -67,15 +67,16 @@ public class AbstractRepository<T> {
             }
             return null;
         } catch (Exception e) {
-            throw new RepositoryException("Error finding all entities", e);
+            throw new RepositoryException("Error finding entity by ID", e);
         }
     }
 
     public void create(T entity) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = prepareInsert(connection)) {
-            for (int i = 0; i < classEntities.getCachedGetters().size(); i++) {
-                ps.setObject(i + 1, requireNonNull(classEntities.getCachedGetters().get(i).invoke(entity)));
+            for (int i = 0; i < entityMetaInfo.getFields().size(); i++) {
+                EntityField entityField = entityMetaInfo.getFields().get(i);
+                ps.setObject(i + 1, requireNonNull(entityField.getGetter().invoke(entity)));
             }
             ps.executeUpdate();
         } catch (Exception e) {
@@ -95,16 +96,16 @@ public class AbstractRepository<T> {
     }
 
     public void updateAllFields(Long id, String... values) {
-        if (values.length != classEntities.getFieldNames().size()) {
+        if (values.length != entityMetaInfo.getFields().size()) {
             throw new IllegalArgumentException("The number of values must match the number of fields");
         }
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement ps = prepareUpdateAllFields(connection)) {
-            for (int i = 0; i < classEntities.getFieldNames().size(); i++) {
+            for (int i = 0; i < entityMetaInfo.getFields().size(); i++) {
                 ps.setObject(i + 1, requireNonNull(values[i]));
             }
-            ps.setObject(classEntities.getFieldNames().size() + 1, requireNonNull(id));
+            ps.setObject(entityMetaInfo.getFields().size() + 1, requireNonNull(id));
             ps.executeUpdate();
         } catch (Exception e) {
             throw new RepositoryException("Error updating entity", e);
@@ -143,8 +144,8 @@ public class AbstractRepository<T> {
             StringBuilder query = new StringBuilder("UPDATE ");
             query.append(tableName).append(" SET ");
 
-            for (String field : classEntities.getFieldNames()) {
-                query.append(field).append(" = ?, ");
+            for (EntityField field : entityMetaInfo.getFields()) {
+                query.append(field.getActualFieldName()).append(" = ?, ");
             }
 
             query.setLength(query.length() - 2);
@@ -157,7 +158,10 @@ public class AbstractRepository<T> {
     }
 
     private PreparedStatement prepareUpdate(String field, Connection connection) throws SQLException {
-        if (!classEntities.getFieldNames().contains(field)) {
+        boolean fieldExists = entityMetaInfo.getFields().stream()
+                .anyMatch(entityField -> entityField.getActualFieldName().equals(field));
+
+        if (!fieldExists) {
             throw new RepositoryException("There is no such field in the table");
         }
 
@@ -170,12 +174,12 @@ public class AbstractRepository<T> {
             StringBuilder query = new StringBuilder("INSERT INTO ");
             query.append(tableName).append(" (");
 
-            for (String fieldName : classEntities.getFieldNames()) {
-                query.append(fieldName).append(", ");
+            for (EntityField field : entityMetaInfo.getFields()) {
+                query.append(field.getActualFieldName()).append(", ");
             }
             query.setLength(query.length() - 2);
             query.append(") VALUES (");
-            query.append("?, ".repeat(classEntities.getFieldNames().size()));
+            query.append("?, ".repeat(entityMetaInfo.getFields().size()));
             query.setLength(query.length() - 2);
             query.append(");");
 
@@ -187,76 +191,60 @@ public class AbstractRepository<T> {
 
     private PreparedStatement prepareDeleteById(Connection connection) throws SQLException {
         return connection.prepareStatement(String.format("DELETE FROM %s WHERE id = ?", tableName));
-
     }
 
     private PreparedStatement prepareDeleteAll(Connection connection) throws SQLException {
         return connection.prepareStatement(String.format("DELETE FROM %s", tableName));
     }
 
-    private void getGettersSettersAndFieldNames(Class<T> cls) {
-        var fields = Arrays.stream(cls.getDeclaredFields())
-                .filter(f -> f.isAnnotationPresent(RepositoryField.class))
-                .filter(f -> !f.isAnnotationPresent(RepositoryIdField.class))
-                .toList();
+    private EntityMetaInfo getEntityMetaInfo(Class<T> cls) {
+        Field idField = null;
+        List<EntityField> fields = new ArrayList<>();
 
-        if (fields.isEmpty()) {
-            throw new RepositoryException("No fields with @RepositoryField annotation found");
+        for (Field field : cls.getDeclaredFields()) {
+            if (field.isAnnotationPresent(RepositoryIdField.class)) {
+                idField = field;
+            } else if (field.isAnnotationPresent(RepositoryField.class)) {
+                String actualFieldName = field.getAnnotation(RepositoryField.class).name();
+                if (actualFieldName.isEmpty()) {
+                    actualFieldName = field.getName();
+                }
+
+                Method getter = getMethod(cls, "get" + capitalize(field.getName()));
+                Method setter = getMethod(cls, "set" + capitalize(field.getName()), field.getType());
+
+                fields.add(new EntityField(field, actualFieldName, getter, setter));
+            }
         }
 
-        classEntities.getCachedGetters()
-                .addAll(fields.stream()
-                        .map(f -> {
-                            String getterName = "get" + capitalize(f.getName());
-                            try {
-                                return cls.getMethod(getterName);
-                            } catch (NoSuchMethodException e) {
-                                throw new RepositoryException("No getter found for field: " + f.getName(), e);
-                            }
-                        }).toList());
-
-        classEntities.getCachedSetters()
-                .addAll(fields.stream()
-                        .map(f -> {
-                            String setterName = "set" + capitalize(f.getName());
-                            try {
-                                return cls.getMethod(setterName, f.getType());
-                            } catch (NoSuchMethodException e) {
-                                throw new RepositoryException("No setter found for field: " + f.getName(), e);
-                            }
-                        }).toList());
-
-        if (classEntities.getCachedGetters().isEmpty()) {
-            throw new RepositoryException("No valid getters found for fields with @RepositoryField annotation");
+        if (idField == null) {
+            throw new RepositoryException("No field with @RepositoryIdField annotation found");
         }
 
-        if (classEntities.getCachedSetters().isEmpty()) {
-            throw new RepositoryException("No valid setters found for fields with @RepositoryField annotation");
-        }
+        String idFieldName = idField.getName();
 
-        classEntities.getFieldNames()
-                .addAll(fields.stream()
-                        .map(f -> {
-                            String fieldName = f.getAnnotation(RepositoryField.class).name();
-                            if (fieldName.isEmpty()) {
-                                return f.getName();
-                            }
-                            return fieldName;
-                        })
-                        .toList());
+        Method idGetter = getMethod(cls, "get" + capitalize(idField.getName()));
+        Method idSetter = getMethod(cls, "set" + capitalize(idField.getName()), idField.getType());
+
+        EntityField idEntityField = new EntityField(idField, idFieldName, idGetter, idSetter);
+
+        return new EntityMetaInfo(idEntityField, fields);
     }
 
-
-    private T createEntityFromResultSet(ResultSet rs) throws Exception {
-        T entity = cls.getDeclaredConstructor().newInstance();
-        for (int i = 0; i < classEntities.getFieldNames().size(); i++) {
-            String fieldName = classEntities.getFieldNames().get(i);
-            Method setter = classEntities.getCachedSetters().get(i);
-            setter.invoke(entity, rs.getObject(fieldName));
+    private Method getMethod(Class<T> cls, String methodName) {
+        try {
+            return cls.getMethod(methodName);
+        } catch (NoSuchMethodException e) {
+            throw new RepositoryException("No method found: " + methodName, e);
         }
-        Method setId = cls.getMethod("setId", Long.class);
-        setId.invoke(entity, rs.getLong("id"));
-        return entity;
+    }
+
+    private Method getMethod(Class<T> cls, String methodName, Class<?> parameterType) {
+        try {
+            return cls.getMethod(methodName, parameterType);
+        } catch (NoSuchMethodException e) {
+            throw new RepositoryException("No method found: " + methodName, e);
+        }
     }
 
     private String capitalize(String str) {
@@ -266,16 +254,14 @@ public class AbstractRepository<T> {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
-    @Getter
-    private static class ClassEntities {
-        private final List<Method> cachedGetters;
-        private final List<Method> cachedSetters;
-        private final List<String> fieldNames;
-
-        public ClassEntities() {
-            this.cachedGetters = new ArrayList<>();
-            this.cachedSetters = new ArrayList<>();
-            this.fieldNames = new ArrayList<>();
+    private T createEntityFromResultSet(ResultSet rs) throws Exception {
+        T entity = cls.getDeclaredConstructor().newInstance();
+        for (EntityField entityField : entityMetaInfo.getFields()) {
+            String fieldName = entityField.getActualFieldName();
+            Method setter = entityField.getSetter();
+            setter.invoke(entity, rs.getObject(fieldName));
         }
+        entityMetaInfo.getId().getSetter().invoke(entity, rs.getLong("id"));
+        return entity;
     }
 }

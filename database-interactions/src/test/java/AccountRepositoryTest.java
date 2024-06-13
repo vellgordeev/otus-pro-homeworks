@@ -1,5 +1,5 @@
 import org.junit.jupiter.api.*;
-import ru.gordeev.AbstractRepository;
+import ru.gordeev.Repository;
 import ru.gordeev.Account;
 import ru.gordeev.DataSource;
 import ru.gordeev.DbMigrator;
@@ -8,10 +8,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AbstractAccountRepositoryTest {
+class AccountRepositoryTest {
 
     private DataSource dataSource;
-    private AbstractRepository<Account> accountRepository;
+    private Repository<Account> accountRepository;
 
     @BeforeEach
     public void setUp() {
@@ -19,7 +19,7 @@ class AbstractAccountRepositoryTest {
         dataSource.connect();
         DbMigrator dbMigrator = new DbMigrator(dataSource);
         dbMigrator.migrate();
-        accountRepository = new AbstractRepository<>(dataSource, Account.class);
+        accountRepository = new Repository<>(dataSource, Account.class);
     }
 
     @AfterEach

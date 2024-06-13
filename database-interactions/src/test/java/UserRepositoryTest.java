@@ -1,5 +1,5 @@
 import org.junit.jupiter.api.*;
-import ru.gordeev.AbstractRepository;
+import ru.gordeev.Repository;
 import ru.gordeev.DataSource;
 import ru.gordeev.DbMigrator;
 import ru.gordeev.User;
@@ -8,10 +8,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AbstractUserRepositoryTest {
+class UserRepositoryTest {
 
     private DataSource dataSource;
-    private AbstractRepository<User> userRepository;
+    private Repository<User> userRepository;
 
     @BeforeEach
     public void setUp() {
@@ -19,7 +19,7 @@ class AbstractUserRepositoryTest {
         dataSource.connect();
         DbMigrator dbMigrator = new DbMigrator(dataSource);
         dbMigrator.migrate();
-        userRepository = new AbstractRepository<>(dataSource, User.class);
+        userRepository = new Repository<>(dataSource, User.class);
     }
 
     @AfterEach
