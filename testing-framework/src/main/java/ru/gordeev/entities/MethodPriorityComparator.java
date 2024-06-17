@@ -1,4 +1,4 @@
-package ru.gordeev.helpers;
+package ru.gordeev.entities;
 
 import ru.gordeev.annotations.Test;
 

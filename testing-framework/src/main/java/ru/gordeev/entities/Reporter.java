@@ -1,4 +1,4 @@
-package ru.gordeev.helpers;
+package ru.gordeev.entities;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -7,7 +7,7 @@ import ru.gordeev.AnnotationProcessor;
 import java.util.EnumMap;
 import java.util.Map;
 
-import static ru.gordeev.helpers.TestStatus.*;
+import static ru.gordeev.entities.TestStatus.*;
 
 public class Reporter {
 

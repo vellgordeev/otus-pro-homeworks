@@ -1,4 +1,4 @@
-package ru.gordeev.helpers;
+package ru.gordeev.entities;
 
 public enum TestStatus {
     SUCCESSFUL("Successful"), FAILED("Failed"), SKIPPED("Skipped");

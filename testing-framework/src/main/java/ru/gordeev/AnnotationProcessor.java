@@ -3,8 +3,8 @@ package ru.gordeev;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.gordeev.annotations.*;
-import ru.gordeev.helpers.MethodPriorityComparator;
-import ru.gordeev.helpers.Reporter;
+import ru.gordeev.entities.MethodPriorityComparator;
+import ru.gordeev.entities.Reporter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
