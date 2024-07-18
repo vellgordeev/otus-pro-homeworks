@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.gordeev.demospringboot.dtos.CreateProductDTO;
 import ru.gordeev.demospringboot.entities.Product;
+import ru.gordeev.demospringboot.exceptions.ValidationException;
 import ru.gordeev.demospringboot.services.ProductService;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class ProductController {
         } else if (title != null) {
             return productService.findByTitle(title);
         } else {
-            throw new IllegalArgumentException("Either price or title must be provided");
+            throw new ValidationException("Either price or title must be provided");
         }
     }
 
@@ -42,7 +43,7 @@ public class ProductController {
                 createProductDTO.getPrice() != null) {
             return productService.createProduct(createProductDTO);
         } else {
-            throw new IllegalArgumentException("Price and title must be provided");
+            throw new ValidationException("Price and title must be provided");
         }
     }
 }

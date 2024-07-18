@@ -8,11 +8,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(ValidationException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 ErrorType.INVALID_REQUEST,
-                HttpStatus.BAD_REQUEST.value(),
                 "Invalid parameters provided in the request",
                 ex.getMessage()
         );
