@@ -32,7 +32,7 @@ public class ThreadPool {
         }
     }
 
-    public synchronized void execute(Runnable task) {
+    public void execute(Runnable task) {
         if (isShutdown) {
             throw new IllegalStateException("ThreadPool is shutdown, cannot accept new tasks");
         }
@@ -43,12 +43,15 @@ public class ThreadPool {
         }
     }
 
-    public synchronized void shutdown() {
-        isShutdown = true;
-        for (Worker worker : workers) {
-            worker.interrupt();
+    public void shutdown() {
+        synchronized (taskQueue) {
+            isShutdown = true;
+            for (Worker worker : workers) {
+                worker.interrupt();
+            }
+            taskQueue.notifyAll();
         }
-        logger.info("ThreadPool is shutdown.");
+        logger.info("ThreadPool has been shut down");
     }
 
     private class Worker extends Thread {
