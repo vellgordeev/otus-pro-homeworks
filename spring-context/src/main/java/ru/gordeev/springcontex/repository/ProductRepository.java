@@ -6,6 +6,7 @@ import ru.gordeev.springcontex.entities.Product;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class ProductRepository {
@@ -29,7 +30,9 @@ public class ProductRepository {
         return products;
     }
 
-    public Product findById(int id) {
-        return products.stream().filter(p -> p.getId() == id).findFirst().orElse(null);
+    public Optional<Product> findById(int id) {
+        return products.stream()
+                .filter(p -> p.getId() == id)
+                .findFirst();
     }
 }
