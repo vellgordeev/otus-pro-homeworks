@@ -3,18 +3,15 @@ package ru.gordeev.springboothibernate.components;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import ru.gordeev.springboothibernate.entities.Customer;
-import ru.gordeev.springboothibernate.entities.Product;
-import ru.gordeev.springboothibernate.entities.Purchase;
 import ru.gordeev.springboothibernate.services.CustomerService;
 import ru.gordeev.springboothibernate.services.ProductService;
 import ru.gordeev.springboothibernate.services.PurchaseService;
 
-import java.util.List;
 import java.util.Scanner;
 
 @Component
 public class ConsoleApplication implements CommandLineRunner {
+    private final Scanner scanner = new Scanner(System.in);
 
     private final CustomerService customerService;
     private final ProductService productService;
@@ -29,7 +26,6 @@ public class ConsoleApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("1. View all customers");
             System.out.println("2. View all products");
@@ -66,43 +62,28 @@ public class ConsoleApplication implements CommandLineRunner {
     }
 
     private void viewAllCustomers() {
-        List<Customer> customers = customerService.getAllCustomers();
-        for (Customer customer : customers) {
-            System.out.println(customer);
-        }
+        customerService.getAllCustomers().forEach(System.out::println);
     }
 
     private void viewAllProducts() {
-        List<Product> products = productService.getAllProducts();
-        for (Product product : products) {
-            System.out.println(product);
-        }
+        productService.getAllProducts().forEach(System.out::println);
     }
 
     private void viewAllPurchases() {
-        List<Purchase> purchases = purchaseService.getAllPurchases();
-        for (Purchase purchase : purchases) {
-            System.out.println(purchase);
-        }
+        purchaseService.getAllPurchases().forEach(System.out::println);
     }
 
     private void viewProductsByCustomer() {
-        Scanner scanner = new Scanner(System.in);
         System.out.print("Enter customer ID: ");
         Long customerId = scanner.nextLong();
-        List<Product> products = purchaseService.getProductsByCustomerId(customerId);
-        for (Product product : products) {
-            System.out.println(product);
-        }
+
+        purchaseService.getProductsByCustomerId(customerId).forEach(System.out::println);
     }
 
     private void viewCustomersByProduct() {
-        Scanner scanner = new Scanner(System.in);
         System.out.print("Enter product ID: ");
         Long productId = scanner.nextLong();
-        List<Purchase> purchases = purchaseService.getPurchasesByProductId(productId);
-        for (Purchase purchase : purchases) {
-            System.out.println(purchase.getCustomer());
-        }
+
+        purchaseService.getPurchasesByProductId(productId).forEach(System.out::println);
     }
 }
