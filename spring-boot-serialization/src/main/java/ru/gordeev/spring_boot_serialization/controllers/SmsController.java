@@ -27,14 +27,16 @@ public class SmsController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<?> processSmsFile(@RequestParam("file") MultipartFile file,
                                             @RequestHeader("Accept") String acceptHeader) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        XmlMapper xmlMapper = new XmlMapper();
+        SmsData smsData = objectMapper.readValue(file.getBytes(), SmsData.class);
 
-        SmsData smsData = new ObjectMapper().readValue(file.getBytes(), SmsData.class);
         List<GroupedMessagesDTO> processedMessages = smsService.processSmsData(smsData);
 
-        if (acceptHeader.equals(MediaType.APPLICATION_XML_VALUE)) {
+        if (MediaType.APPLICATION_XML_VALUE.equals(acceptHeader)) {
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_XML)
-                    .body(new XmlMapper().writeValueAsString(processedMessages));
+                    .body(xmlMapper.writeValueAsString(processedMessages));
         } else {
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
