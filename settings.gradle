@@ -3,4 +3,6 @@ include 'testing-framework'
 include 'stream-api'
 include 'code-patterns'
 include 'database-interactions'
+include 'demo-spring-boot'
+include 'hibernate'
 
