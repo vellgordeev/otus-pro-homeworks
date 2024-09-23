@@ -1,0 +1,3 @@
+<logger name="com.p6spy.engine.spy.P6SpyDriver" level="DEBUG">
+    <appender-ref ref="STDOUT"/>
+</logger>
