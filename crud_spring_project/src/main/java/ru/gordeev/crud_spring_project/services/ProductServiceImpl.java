@@ -43,6 +43,12 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDto createProduct(ProductRequestDto productRequestDto) {
         productValidator.validate(productRequestDto);
         Product product = convertToEntity(productRequestDto);
+
+        if (productRequestDto.getName() != null)
+            product.setName(productRequestDto.getName());
+        if (productRequestDto.getPrice() != null)
+            product.setPrice(productRequestDto.getPrice());
+
         Product savedProduct = productRepository.save(product);
         return convertToDto(savedProduct);
     }
@@ -63,6 +69,7 @@ public class ProductServiceImpl implements ProductService {
         if (!productRepository.existsById(id)) {
             throw new ProductNotFoundException(id);
         }
+        productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
         productRepository.deleteById(id);
     }
 
