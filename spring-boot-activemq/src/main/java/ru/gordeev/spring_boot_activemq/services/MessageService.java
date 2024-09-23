@@ -15,9 +15,11 @@ import java.util.List;
 @Service
 public class MessageService {
     private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
-    private final List<Message> receivedMessages = new ArrayList<>();
+    private static final String QUEUE_NAME = "message-queue";
 
+    private final List<Message> receivedMessages = new ArrayList<>();
     private final JmsTemplate jmsTemplate;
+
 
     @Autowired
     public MessageService(JmsTemplate jmsTemplate) {
@@ -26,10 +28,10 @@ public class MessageService {
 
     public void sendMessage(Message message) {
         logger.info("Sending message: UUID={}, Text={}", message.getUuid(), message.getText());
-        jmsTemplate.convertAndSend("message-topic", message);
+        jmsTemplate.convertAndSend(QUEUE_NAME, message);
     }
 
-    @JmsListener(destination = "message-topic")
+    @JmsListener(destination = QUEUE_NAME)
     public void receiveMessage(Message message) {
         logger.info("Received message: UUID={}, Text={}", message.getUuid(), message.getText());
         receivedMessages.add(message);
